@@ -104,6 +104,14 @@ DATASET_PRESETS = {
               'test': 'validation',
               'crop': 384})
          }),
+    'fashionMNIST': ml_collections.ConfigDict(
+        {'total_steps': 10_000,
+         'pp': ml_collections.ConfigDict(
+             {'train': 'train[:99%]',
+              'test': 'test',
+              'crop': 24}
+         )}
+    )
 }
 
 
