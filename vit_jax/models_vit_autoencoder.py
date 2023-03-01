@@ -379,13 +379,13 @@ class VisionTransformer(nn.Module):
 
         # (Possibly partial) Transformer.
         if self.transformer is not None:
-            n, h, w, c = x.shape
-            x = jnp.reshape(x, [n, h * w, c])
+            n_t, h_t, w_t, c_t = x.shape
+            x = jnp.reshape(x, [n_t, h_t * w_t, c_t])
 
             # If we want to add a class token, add it here.  NOTE: This could apply to autoencoder as well
             if self.classifier in ['token', 'token_unpooled']:
-                cls = self.param('cls', nn.initializers.zeros, (1, 1, c))
-                cls = jnp.tile(cls, [n, 1, 1])
+                cls = self.param('cls', nn.initializers.zeros, (1, 1, c_t))
+                cls = jnp.tile(cls, [n_t, 1, 1])
                 x = jnp.concatenate([cls, x], axis=1)
 
             x = self.encoder(name='Transformer', **self.transformer)(x, train=train)
@@ -418,8 +418,9 @@ class VisionTransformer(nn.Module):
 
         # just replace this with dense network to get MNIST size output? (24x24 = 576)
         out = nn.Dense(
-            features=576,  # size of MNIST image?
+            features=h*w*c,  # size of MNIST image?
             name='autoencoder_head',
             kernel_init=nn.initializers.zeros,
             bias_init=nn.initializers.constant(self.head_bias_init))(z)
-        return jnp.reshape(out, [n, 24, 24]), mu, logVar
+        out = nn.sigmoid(out)
+        return jnp.reshape(out, [n, h, w, c]), mu, logVar
